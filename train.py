@@ -19,6 +19,10 @@ def train(config, args):
     start_time = time.time()
     G_loss_best, D_loss_best = float('inf'), float('inf')
     ckpt = tf.train.get_checkpoint_state(directories.checkpoints)
+    '''ckpt返回的是checkpoint文件CheckpointState proto类型的内容，
+    其中有model_checkpoint_path和all_model_checkpoint_paths两个属性。
+    其中model_checkpoint_path保存了最新的tensorflow模型文件的文件名，
+    all_model_checkpoint_paths则有未被删除的所有tensorflow模型文件的文件名。'''
 
     # Load data
     print('Training on dataset', args.dataset)
@@ -31,7 +35,7 @@ def train(config, args):
         test_paths = Data.load_dataframe(directories.test)
 
     # Build graph
-    gan = Model(config, paths, name=args.name, dataset=args.dataset)
+    gan = Model(config, paths, name=args.name, dataset=args.dataset)#调用modle.py初始化模型
     saver = tf.train.Saver()
 
     if config.use_conditional_GAN:
@@ -44,6 +48,7 @@ def train(config, args):
         feed_dict_train_init = {gan.path_placeholder: paths}
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)) as sess:
+        #configProto对sess参数进行设置，主要是硬件分配方面
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
         train_handle = sess.run(gan.train_iterator.string_handle())
