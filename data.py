@@ -7,7 +7,7 @@ from config import directories
 class Data(object):
 
     @staticmethod
-    def load_dataframe(filename, load_semantic_maps=False):
+    def load_dataframe(filename, load_semantic_maps=False):#读取图片路径
         df = pd.read_hdf(filename, key='df').sample(frac=1).reset_index(drop=True)
 
         if load_semantic_maps:
@@ -29,7 +29,7 @@ class Data(object):
 
         def _parser(image_path, semantic_map_path=None):
 
-            def _aspect_preserving_width_resize(image, width=512):
+            def _aspect_preserving_width_resize(image, width=512):#使图片高度是16的倍数，宽是512
                 height_i = tf.shape(image)[0]
                 # width_i = tf.shape(image)[1]
                 # ratio = tf.to_float(width_i) / tf.to_float(height_i)
@@ -38,8 +38,8 @@ class Data(object):
                 return tf.image.resize_image_with_crop_or_pad(image, new_height, width)
 
             def _image_decoder(path):
-                im = tf.image.decode_png(tf.read_file(path), channels=3)
-                im = tf.image.convert_image_dtype(im, dtype=tf.float32)
+                im = tf.image.decode_png(tf.read_file(path), channels=3)#解码png变成im格式
+                im = tf.image.convert_image_dtype(im, dtype=tf.float32)#图片归一化
                 return 2 * im - 1 # [0,1] -> [-1,1] (tanh range)
                     
             image = _image_decoder(image_path)
@@ -73,10 +73,11 @@ class Data(object):
         else:
             dataset = tf.data.Dataset.from_tensor_slices(image_paths)
 
-        dataset = dataset.shuffle(buffer_size=8)
-        dataset = dataset.map(_parser)
-        dataset = dataset.cache()
-        dataset = dataset.batch(batch_size)
+        dataset = dataset.shuffle(buffer_size=8)#打乱dataset中的元素
+        dataset = dataset.map(_parser)#对每一个元素进行_parser函数操作
+        dataset = dataset.cache()#将dataset数据放入cache中
+        dataset = dataset.batch(batch_size)#每batchsize个元素作为一个batch一起处理
+       
 
         if test:
             dataset = dataset.repeat()
